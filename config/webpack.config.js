@@ -1,4 +1,3 @@
-
 const path = require('path')
 const webpack = require('webpack')
 const pkg = require('../package.json')
@@ -9,7 +8,13 @@ const { MFSU } = require('@umijs/mfsu')
 
 const mfsu = new MFSU({
     implementor: webpack,
-    buildDepWithESBuild: false,
+    buildDepWithESBuild: true,
+    depBuildConfig: {
+        loader: {
+            '.jpeg': 'file',
+            '.css': 'css'
+        }
+    }
     // runtimePublicPath: '/',
     // cwd: process.cwd()
 })
@@ -27,6 +32,7 @@ module.exports = async (env) => {
             unsafeCache: true,
         },
         plugins: [
+            new webpack.HotModuleReplacementPlugin(),
             new webpack.DefinePlugin({
                 // 'process.env.NODE_ENV': JSON.stringify(nodeEnv),
                 'process.env.MODE_ENV': JSON.stringify(env.mode),
@@ -37,7 +43,7 @@ module.exports = async (env) => {
                 title: '测试',
                 forceHttps: false,
                 template: path.join(rootDir, 'index.html'),
-                chunks: ['react_base', 'app'],
+                chunks: ['app'],
             }),
         ],
         module: {
@@ -45,39 +51,65 @@ module.exports = async (env) => {
                 {
                     test: /\.jsx?$/,
                     exclude: [/node_modules/],
-                    include: [
-                        path.resolve(rootDir, 'src'),
-                    ],
+                    include: [path.resolve(rootDir, 'src')],
                     loader: 'babel-loader',
                     options: {
                         cacheDirectory: true,
                         cacheCompression: false,
                         compact: isEnvProduction,
-                        plugins: mfsu ? [
-                            ...mfsu.getBabelPlugins()
-                        ] : null,
                         exclude: [
                             // \\ for Windows, \/ for Mac OS and Linux
                             /node_modules[\\\/]core-js/,
                             /node_modules[\\\/]webpack[\\\/]buildin/,
                         ],
+                        presets: [
+                            [
+                                '@babel/preset-env',
+                                {
+                                    useBuiltIns: 'usage',
+                                    targets: {
+                                        chrome: '49',
+                                        ie: '11',
+                                    },
+                                    corejs: 3,
+                                },
+                            ],
+                            '@babel/preset-react',
+                        ],
+                        plugins: [
+                            [
+                                '@babel/plugin-transform-runtime',
+                                {
+                                    corejs: 3,
+                                },
+                            ],
+                            ...(mfsu ? mfsu.getBabelPlugins() : []),
+                        ],
                     },
+                },
+                {
+                    test: /\.jpeg$/,
+                    type: "asset/resource",
                 }
             ],
             unsafeCache: true,
         },
-        experiments: isEnvLocal ? {
-            cacheUnaffected: true,
-        } : {},
-        cache: isEnvProduction ? {
-            store: 'pack',
-            type: 'filesystem',
-            buildDependencies: {
-                defaultWebpack: ['webpack/lib/'],
-                config: [__filename],
-            },
-            name: `${ env.mode }-cache`,
-        } : true,
+        experiments: isEnvLocal
+            ? {
+                  cacheUnaffected: true,
+              }
+            : {},
+        cache: isEnvProduction
+            ? {
+                  store: 'pack',
+                  type: 'filesystem',
+                  buildDependencies: {
+                      defaultWebpack: ['webpack/lib/'],
+                      config: [__filename],
+                  },
+                  name: `${env.mode}-cache`,
+              }
+            : true,
         target: ['browserslist'],
         stats: 'errors-warnings',
         bail: isEnvProduction,
@@ -102,7 +134,7 @@ module.exports = async (env) => {
             chunkFilename: '[name].[contenthash].js',
             publicPath: '/',
             pathinfo: true,
-            assetModuleFilename: '[path][name]_[contenthash][ext]'
+            assetModuleFilename: '[path][name]_[contenthash][ext]',
         },
         devServer: {
             port: '8899',
@@ -135,17 +167,16 @@ module.exports = async (env) => {
     }
     await mfsu.setWebpackConfig({
         config,
-        depConfig: {
-            devtool: 'cheap-module-source-map',
-            mode: 'development',
-            output: {},
-            resolve: {
-                extensions: ['.ts', '.tsx', '.js', '.jsx'],
-                symlinks: false,
-            },
-            module: config.module,
-            plugins: [],
-        }
+        //     devtool: 'cheap-module-source-map',
+        //     mode: 'development',
+        //     output: {},
+        //     resolve: {
+        //         extensions: ['.ts', '.tsx', '.js', '.jsx'],
+        //         symlinks: false,
+        //     },
+        //     module: config.module,
+        //     plugins: [],
+        // }
     })
     return config
 }

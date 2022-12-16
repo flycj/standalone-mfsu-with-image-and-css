@@ -2,16 +2,19 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import {createBrowserRouter, RouterProvider} from 'react-router-dom'
 
+import { url } from 'other'
+console.log('url: ', url);
+
 const router = createBrowserRouter([
     {
       path: "/",
-      element: <div>Hello world!</div>,
+      element: <div>2222
+
+        <img src={url} />
+      </div>,
     },
 ]);
 const testPromise = () => new Promise((resolve) => {
   setTimeout(() => resolve(123), 1000)
 })
-(async () => {
-  await testPromise()
-  createRoot(document.getElementById('root')).render(<RouterProvider router={router}/>)
-})()
+createRoot(document.getElementById('root')).render(<RouterProvider router={router}/>)
