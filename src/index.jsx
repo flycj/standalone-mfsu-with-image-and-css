@@ -2,7 +2,7 @@ import React from 'react'
 import { createRoot } from 'react-dom/client'
 import {createBrowserRouter, RouterProvider} from 'react-router-dom'
 
-import { url } from 'other'
+import 'other/style.css'
 console.log('url: ', url);
 
 const router = createBrowserRouter([
