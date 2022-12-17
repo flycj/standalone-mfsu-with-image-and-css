@@ -83,9 +83,29 @@ module.exports = async (env) => {
                                     corejs: 3,
                                 },
                             ],
-                            ...(mfsu ? mfsu.getBabelPlugins() : []),
+                            // ...(mfsu ? mfsu.getBabelPlugins() : []),
                         ],
                     },
+                },
+                {
+                    test: /\.css$/,
+                    use: [
+                        'style-loader',
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                sourceMap: shouldUseSourceMap,
+                                modules: {
+                                    mode: 'global',
+                                }
+                            }
+                        },
+                    ],
+                    // Don't consider CSS imports dead code even if the
+                    // containing package claims to have no side effects.
+                    // Remove this when webpack adds a warning or an error for this.
+                    // See https://github.com/webpack/webpack/issues/6571
+                    sideEffects: true,
                 },
                 {
                     test: /\.jpeg$/,
